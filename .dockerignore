@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+.gitmodules
+.gitattributes
+
+# Gradle
+.gradle
+build/
+*/build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Local config
+local.properties
+
+# Documentation
+*.md
+docs/
+
+# Keys (security)
+*.jks
+keys/
+
+# Screenshots and images for docs
+*.png
+docs/
+

@@ -47,7 +47,9 @@ open class MicroPebbleApplication : Application() {
 
       AndroidLogcatLogger.installOnDebuggableApp(this, minPriority = LogPriority.VERBOSE)
 
-      enableStrictMode()
+      // TEST THIS in Miui:
+      // too many strict crashes...
+      // enableStrictMode()
 
       DefaultDispatcherProvider.set(
          AccessCallbackDispatcherProvider(DefaultDispatcherProvider.get()) {
@@ -157,4 +159,12 @@ private val STRICT_MODE_EXCLUSIONS = listOf(
    "SurfaceControl.finalize", // https://issuetracker.google.com/issues/167533582
    "InsetsSourceControl", // https://issuetracker.google.com/issues/307473789
    "io.rebble.libpebblecommon.di.LibPebbleModuleKt.initKoin", // libPebble init is doing a lot of main thread reads
+
+   // MIUI specific:
+   "miui.util.font.FontSettings", 
+   "miui.util.TypefaceUtils.loadFontSettings",
+   "miui.contentcatcher.InterceptorProxy", 
+   
+   // Vendor-specific performance monitoring (MIUI/OPPO/Vivo/etc)
+   "TurboSchedMonitorImpl",
 )

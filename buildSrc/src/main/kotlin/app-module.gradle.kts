@@ -49,16 +49,12 @@ android {
          val mainOutput =
             variant.outputs.single { it.outputType == VariantOutputConfiguration.OutputType.SINGLE }
 
-         val gitHashProvider = providers.exec {
-            commandLine("git", "rev-parse", "--short", "HEAD")
-         }.standardOutput.asText.map { it.trim() }
-
          val baseVersionName = defaultConfig.versionName
          val buildNumberProvider = providers.environmentVariable("BUILD_NUMBER")
 
-         // A bit weird syntax as a workaround for the https://github.com/gradle/gradle/issues/30792
+         // Hardcoded fallback version to avoid git dependency in Docker builds
          val appendedVersionName = buildNumberProvider.map { "$baseVersionName-$it" }
-            .orElse(gitHashProvider.map { gitHash -> "$baseVersionName-local-$gitHash" })
+            .orElse(providers.provider { "$baseVersionName-docker" })
 
          variant.buildConfigFields?.put(
             "VERSION_NAME",

@@ -6,10 +6,11 @@ import android.companion.AssociationInfo
 import android.companion.AssociationRequest
 import android.companion.BluetoothDeviceFilter
 import android.companion.CompanionDeviceManager
-import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -86,6 +87,14 @@ class BluetoothScanScreen(
                }
             }
 
+            val companionDeviceAssociation = rememberLauncherForActivityResult(
+               ActivityResultContracts.StartIntentSenderForResult()
+            ) { result ->
+               if (result.resultCode == Activity.RESULT_OK) {
+                  // Association successful, the device pairing should proceed
+               }
+            }
+
             val context = LocalContext.current
             val companionManager = context.getSystemService<CompanionDeviceManager>()!!
 
@@ -101,7 +110,7 @@ class BluetoothScanScreen(
                   }
                },
                pairToDevice = {
-                  associateWithCompanionManager(companionManager, it, context)
+                  associateWithCompanionManager(companionManager, it, companionDeviceAssociation)
                },
                cancelPairing = viewmodel::cancelPairing
             )
@@ -112,7 +121,7 @@ class BluetoothScanScreen(
    private fun associateWithCompanionManager(
       companionManager: CompanionDeviceManager,
       device: PebbleDevice,
-      context: Context,
+      launcher: ActivityResultLauncher<IntentSenderRequest>,
    ) {
       companionManager.associate(
          AssociationRequest.Builder().setSingleDevice(true)
@@ -124,11 +133,19 @@ class BluetoothScanScreen(
          object : CompanionDeviceManager.Callback() {
             override fun onFailure(error: CharSequence?) {}
 
-            override fun onAssociationPending(intentSender: IntentSender) {
-               super.onAssociationPending(intentSender)
-               context.startIntentSender(intentSender, null, 0, 0, 0)
+            // For Android 8.0 - 12 (API 26-32)
+            override fun onDeviceFound(intentSender: IntentSender) {
+               super.onDeviceFound(intentSender)
+               launcher.launch(IntentSenderRequest.Builder(intentSender).build())
             }
 
+            // For Android 13+ (API 33+)
+            override fun onAssociationPending(intentSender: IntentSender) {
+               super.onAssociationPending(intentSender)
+               launcher.launch(IntentSenderRequest.Builder(intentSender).build())
+            }
+
+            // For Android 13+ (API 33+)
             override fun onAssociationCreated(associationInfo: AssociationInfo) {
                notificationsStatus.requestNotificationAccess()
                viewmodel.connect(device)
